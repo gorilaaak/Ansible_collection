@@ -1,0 +1,44 @@
+---
+ - name: Create OS fs from pv to successfull mount
+   hosts: all
+
+   tasks:
+   - name: Creating data PV and VG
+     lvg:
+        pvs: /dev/sdb
+        vg: datavg
+        state: present
+
+
+   - name: Creating logical volumes
+     lvol: 
+        vg: "{{ item.vg }}"
+        lv: "{{ item.lv }}"
+        size: "{{ item.size }}"
+     with_items:
+        - { vg: 'datavg', lv: 'datalv', size: "{{ datalv_Size }}" }
+        - { vg: 'datavg', lv: 'optclouderalv', size: "{{ optClouderalv_Size }}" }
+        - { vg: 'datavg', lv: 'clouderalv', size: "{{ clouderalv_Size  }}" }
+
+
+   - name: Creating filesystems
+     filesystem:
+        fstype: xfs
+        dev: "{{ item.dev }}"
+     with_items:
+        - { dev: '/dev/datavg/datalv' }
+        - { dev: '/dev/datavg/clouderalv' }
+        - { dev: '/dev/datavg/optclouderalv' }
+
+
+   - name: Mounting filesystems
+     mount: 
+        path: "{{ item.path }}"
+        state: mounted
+        fstype: xfs
+        src: "{{ item.source }}"
+        opts: defaults
+     with_items:
+        - { path: '/data', source: '/dev/datavg/datalv' }
+        - { path: '/opt/cloudera', source: '/dev/datavg/optclouderalv' }
+        - { path: '/cloudera', source: '/dev/datavg/clouderalv' }

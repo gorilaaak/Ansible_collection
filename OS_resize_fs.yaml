@@ -1,0 +1,17 @@
+---
+ - name: Resize given logical volume and fs
+   hosts: all
+   
+   tasks:
+   - name: Extending /tmp volume group
+     lvol:
+       state: present 
+       vg: rootvg
+       lv: tmplv
+       size: 10G
+       resizefs: true
+     register: tmp_output
+
+   - name: Showing results
+     debug:
+       var: tmp_output

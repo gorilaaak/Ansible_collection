@@ -1,0 +1,26 @@
+---
+ - name: OS admin packages deployment
+   hosts: all
+   
+   tasks:
+   - name: Installing required admin packages
+     dnf:
+       update_cache: true
+       state: present
+       name: 
+       - sos
+       - lsof
+       - mlocate
+       - nfs4-acl-tools.x86_64
+       - tmux
+       - net-tools
+       - setroubleshoot-server
+       - git
+       - python38-psycopg2.x86_64
+     register: install_status
+
+   - name: Show progress of installations
+     debug:
+       msg: 
+        - "{{ install_status.msg  }}"
+        - "{{ install_status.results }}"

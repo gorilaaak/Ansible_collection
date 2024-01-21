@@ -1,0 +1,17 @@
+---
+ - name: Mount NFS share
+   hosts: all
+   vars:
+     - NFS_path: /example
+     - NFS_src: 192.168.100.41:/mounted_NFS
+
+   tasks:
+   - name: Mounting NFS share "{{ NFS_path }}"
+     mount:
+        src: "{{ NFS_src }}"
+        path: "{{ NFS_path }}"
+        opts: rw,vers=4.0,soft
+        dump: 0
+        passno: 0
+        fstype: nfs
+        state: mounted

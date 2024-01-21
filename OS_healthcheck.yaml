@@ -1,0 +1,38 @@
+---
+ - name: Perform basic healthcheck's on RHEL machines before cluster deployment
+   hosts: all
+
+   tasks: 
+   - name: Checking OS version
+     set_fact:
+      Linux_version: "{{ ansible_facts.distribution_major_version }}"
+   - debug:
+      msg: System has correct RHEL version
+     failed_when: Linux_version != OS_version
+
+ 
+   - name: Checking RedHat subscription
+     shell: 'subscription-manager status |grep ^O |cut -d ":" -f2 | sed "s/ //g"'
+     register: sub_status   
+   - debug:
+      msg: System has correct RHEL subscription.
+     when: not ansible_check_mode
+     failed_when: sub_status.stdout != OS_sub_status
+
+ 
+   - name: Checking Root partition
+     set_fact:
+      sda_Check: "{{ 'rootvg-rootlv' in ansible_facts.devices.sda | to_json  }}"
+      sda_Size: "{{ ansible_facts.devices.sda.size | regex_search('[0-9]+') }}"
+   - debug:
+      msg: Root partition is set properly
+     failed_when: sda_Check != true and sda_Size | int < 30
+
+ 
+   - name: Checking Data partition
+     set_fact:
+      sdb_Size: "{{ ansible_facts.devices.sdb.size | regex_search('[0-9]+') }}"
+      sdb_LVM_check: "{{ 'datavg' in ansible_facts.devices.sdb | to_json  }}"
+   - debug:
+      msg: Data partition is set properly
+     failed_when: sdb_Size | int < 150 and sdb_LVM_check != true
